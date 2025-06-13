@@ -10,6 +10,10 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse
 import os
 from pathlib import Path
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 from database import init_db
 from auth.routes import router as auth_router
@@ -18,21 +22,29 @@ from challenges.routes import router as challenges_router
 from community.routes import router as community_router
 from users.routes import router as users_router
 
+# Environment configuration
+ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
+DEBUG = ENVIRONMENT == "development"
+
 # Create FastAPI app
 app = FastAPI(
     title="EcoTrack Ghana API",
     description="Backend API for EcoTrack Ghana - Environmental tracking for a sustainable future",
     version="1.0.0",
-    docs_url="/docs",
-    redoc_url="/redoc"
+    docs_url="/docs" if DEBUG else None,  # Disable docs in production
+    redoc_url="/redoc" if DEBUG else None,  # Disable redoc in production
+    openapi_url="/openapi.json" if DEBUG else None  # Disable OpenAPI schema in production
 )
+
+# CORS configuration
+allowed_origins = os.getenv("ALLOWED_ORIGINS", "").split(",") if os.getenv("ALLOWED_ORIGINS") else ["*"]
 
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, replace with specific origins
+    allow_origins=allowed_origins,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 
@@ -57,9 +69,10 @@ app.include_router(users_router, prefix=f"{api_v1_prefix}/users", tags=["Users"]
 @app.get("/")
 async def root():
     return {
-        "message": "Welcome to EcoTrack Ghana API",
-        "version": "1.0.0",
+        "message": "🌍 Welcome to EcoTrack Ghana API",
+        "version": os.getenv("PROJECT_VERSION", "1.0.0"),
         "status": "healthy",
+        "environment": ENVIRONMENT,
         "motto": "Yɛ bɛyɛ yiye - We will make it better"
     }
 
@@ -68,7 +81,8 @@ async def health_check():
     return {
         "status": "healthy",
         "service": "EcoTrack Ghana API",
-        "timestamp": "2025-06-12T00:00:00Z"
+        "environment": ENVIRONMENT,
+        "version": os.getenv("PROJECT_VERSION", "1.0.0")
     }
 
 # Ghana-specific data endpoint
@@ -100,14 +114,20 @@ async def get_ghana_regions():
 @app.on_event("startup")
 async def startup_event():
     init_db()
-    print("🌍 EcoTrack Ghana API started successfully!")
-    print("📚 API Documentation: http://localhost:8000/docs")
+    if DEBUG:
+        print("🌍 EcoTrack Ghana API started successfully!")
+        print("📚 API Documentation: http://localhost:8000/docs")
+    else:
+        print("🌍 EcoTrack Ghana API started in production mode")
 
 if __name__ == "__main__":
+    port = int(os.getenv("PORT", 8000))
+    host = os.getenv("HOST", "0.0.0.0")
+    
     uvicorn.run(
         "main:app",
-        host="0.0.0.0",
-        port=8000,
-        reload=True,
-        log_level="info"
+        host=host,
+        port=port,
+        reload=DEBUG,
+        log_level="info" if DEBUG else "warning"
     )
