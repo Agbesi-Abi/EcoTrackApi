@@ -1,4 +1,4 @@
-# Use official Python runtime as base image
+# Simple production Dockerfile for EcoTrack Ghana API
 FROM python:3.11-slim
 
 # Set working directory
@@ -13,27 +13,20 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         gcc \
-        postgresql-client \
+        libpq-dev \
         curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements first for better caching
-COPY requirements.txt ./
-
-# Install Python dependencies
+# Copy requirements and install dependencies
+COPY requirements.production.txt .
 RUN pip install --no-cache-dir --upgrade pip
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.production.txt
 
 # Copy application code
 COPY . .
 
 # Create necessary directories
 RUN mkdir -p uploads logs
-
-# Create non-root user for security
-RUN adduser --disabled-password --gecos '' appuser \
-    && chown -R appuser:appuser /app
-USER appuser
 
 # Expose port
 EXPOSE 8000
