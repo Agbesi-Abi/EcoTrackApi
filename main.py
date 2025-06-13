@@ -21,19 +21,21 @@ from activities.routes import router as activities_router
 from challenges.routes import router as challenges_router
 from community.routes import router as community_router
 from users.routes import router as users_router
+from admin.routes import router as admin_router
 
 # Environment configuration
 ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
 DEBUG = ENVIRONMENT == "development"
+ENABLE_DOCS = os.getenv("ENABLE_DOCS", "false").lower() == "true"
 
 # Create FastAPI app
 app = FastAPI(
     title="EcoTrack Ghana API",
     description="Backend API for EcoTrack Ghana - Environmental tracking for a sustainable future",
     version="1.0.0",
-    docs_url="/docs" if DEBUG else None,  # Disable docs in production
-    redoc_url="/redoc" if DEBUG else None,  # Disable redoc in production
-    openapi_url="/openapi.json" if DEBUG else None  # Disable OpenAPI schema in production
+    docs_url="/docs" if (DEBUG or ENABLE_DOCS) else None,  # Enable docs if DEBUG or ENABLE_DOCS
+    redoc_url="/redoc" if (DEBUG or ENABLE_DOCS) else None,  # Enable redoc if DEBUG or ENABLE_DOCS
+    openapi_url="/openapi.json" if (DEBUG or ENABLE_DOCS) else None  # Enable OpenAPI schema if DEBUG or ENABLE_DOCS
 )
 
 # CORS configuration
@@ -64,6 +66,10 @@ app.include_router(activities_router, prefix=f"{api_v1_prefix}/activities", tags
 app.include_router(challenges_router, prefix=f"{api_v1_prefix}/challenges", tags=["Challenges"])
 app.include_router(community_router, prefix=f"{api_v1_prefix}/community", tags=["Community"])
 app.include_router(users_router, prefix=f"{api_v1_prefix}/users", tags=["Users"])
+
+# Admin routes (only in development)
+if DEBUG:
+    app.include_router(admin_router, prefix=f"{api_v1_prefix}/admin", tags=["Admin"])
 
 # Health check endpoint
 @app.get("/")
