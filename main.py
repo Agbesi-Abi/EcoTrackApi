@@ -8,6 +8,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse
+from contextlib import asynccontextmanager
 import os
 from pathlib import Path
 from dotenv import load_dotenv
@@ -27,6 +28,21 @@ from admin.routes import router as admin_router
 ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
 DEBUG = ENVIRONMENT == "development"
 ENABLE_DOCS = os.getenv("ENABLE_DOCS", "false").lower() == "true"
+ENABLE_ADMIN = os.getenv("ENABLE_ADMIN", "false").lower() == "true"
+
+# Lifespan event handler
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup
+    init_db()
+    if DEBUG:
+        print("🌍 EcoTrack Ghana API started successfully!")
+        print("📚 API Documentation: http://localhost:8000/docs")
+    else:
+        print("🌍 EcoTrack Ghana API started in production mode")
+    yield
+    # Shutdown (if needed)
+    print("🔄 EcoTrack Ghana API shutting down...")
 
 # Create FastAPI app
 app = FastAPI(
@@ -35,7 +51,8 @@ app = FastAPI(
     version="1.0.0",
     docs_url="/docs" if (DEBUG or ENABLE_DOCS) else None,  # Enable docs if DEBUG or ENABLE_DOCS
     redoc_url="/redoc" if (DEBUG or ENABLE_DOCS) else None,  # Enable redoc if DEBUG or ENABLE_DOCS
-    openapi_url="/openapi.json" if (DEBUG or ENABLE_DOCS) else None  # Enable OpenAPI schema if DEBUG or ENABLE_DOCS
+    openapi_url="/openapi.json" if (DEBUG or ENABLE_DOCS) else None,  # Enable OpenAPI schema if DEBUG or ENABLE_DOCS
+    lifespan=lifespan
 )
 
 # CORS configuration
@@ -67,8 +84,8 @@ app.include_router(challenges_router, prefix=f"{api_v1_prefix}/challenges", tags
 app.include_router(community_router, prefix=f"{api_v1_prefix}/community", tags=["Community"])
 app.include_router(users_router, prefix=f"{api_v1_prefix}/users", tags=["Users"])
 
-# Admin routes (only in development)
-if DEBUG:
+# Admin routes (only in development or when explicitly enabled)
+if DEBUG or ENABLE_ADMIN:
     app.include_router(admin_router, prefix=f"{api_v1_prefix}/admin", tags=["Admin"])
 
 # Health check endpoint
@@ -112,19 +129,8 @@ async def get_ghana_regions():
         {"name": "Bono East", "capital": "Techiman", "code": "BE"},
         {"name": "Oti", "capital": "Dambai", "code": "OT"},
         {"name": "North East", "capital": "Nalerigu", "code": "NE"},
-        {"name": "Savannah", "capital": "Damongo", "code": "SV"}
-    ]
+        {"name": "Savannah", "capital": "Damongo", "code": "SV"}    ]
     return {"regions": regions, "total": len(regions)}
-
-# Initialize database on startup
-@app.on_event("startup")
-async def startup_event():
-    init_db()
-    if DEBUG:
-        print("🌍 EcoTrack Ghana API started successfully!")
-        print("📚 API Documentation: http://localhost:8000/docs")
-    else:
-        print("🌍 EcoTrack Ghana API started in production mode")
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 8000))
