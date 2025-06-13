@@ -1,0 +1,43 @@
+version: '3.8'
+services:
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://ecotrack:ecotrack123@db:5432/ecotrack_ghana
+      - JWT_SECRET_KEY=super-secure-production-key-256-bits
+      - ENVIRONMENT=production
+    depends_on:
+      - db
+    volumes:
+      - ./uploads:/app/uploads
+    restart: unless-stopped
+
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: ecotrack_ghana
+      POSTGRES_USER: ecotrack
+      POSTGRES_PASSWORD: ecotrack123
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./ssl:/etc/nginx/ssl
+    depends_on:
+      - api
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
