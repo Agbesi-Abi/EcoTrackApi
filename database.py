@@ -8,6 +8,10 @@ from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy.sql import func
 import os
 from typing import Optional
+from dotenv import load_dotenv
+
+# Load environment variables from .env.production
+load_dotenv('.env.production')
 
 # Database URL
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./ecotrack_ghana.db")
