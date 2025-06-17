@@ -10,7 +10,9 @@ import os
 from typing import Optional
 
 # Database URL
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./ecotrack_ghana.db")
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://neondb_owner:npg_HTpxb2li9fnh@ep-polished-wildflower-a8ojt0hv-pooler.eastus2.azure.neon.tech/neondb?sslmode=require")
+print(DATABASE_URL)
+
 
 # Database connection parameters
 db_pool_size = int(os.getenv("DB_POOL_SIZE", "10"))
