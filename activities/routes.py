@@ -16,6 +16,10 @@ from database import get_db, Activity, User
 from auth.utils import get_current_user, get_optional_current_user
 from .schemas import ActivityCreate, ActivityResponse, ActivityUpdate, ActivityStats
 from .utils import calculate_points, update_user_impact_stats, save_uploaded_file
+from notifications.utils import (
+    trigger_activity_verification_notification, 
+    trigger_points_milestone_notification
+)
 
 router = APIRouter()
 
@@ -132,14 +136,20 @@ async def create_activity(
     db.add(db_activity)
     db.commit()
     db.refresh(db_activity)
-    
-    # Update user points and impact stats
+      # Update user points and impact stats
     current_user.total_points += points
     current_user.weekly_points += points
     update_user_impact_stats(current_user, activity_data.type, activity_data.dict())
     
     db.commit()
     db.refresh(current_user)
+    
+    # Trigger milestone notification if user reached a significant milestone
+    try:
+        trigger_points_milestone_notification(db, current_user.id, current_user.total_points)
+    except Exception as e:
+        # Don't fail activity creation if notification fails
+        print(f"Failed to create milestone notification: {e}")
     
     return ActivityResponse(
         id=db_activity.id,

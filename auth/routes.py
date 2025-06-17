@@ -5,7 +5,7 @@ Authentication routes for EcoTrack Ghana
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
-from datetime import timedelta
+from datetime import timedelta, datetime
 import os
 
 from database import get_db, User
@@ -18,6 +18,7 @@ from .utils import (
     verify_token,
     get_current_user
 )
+from notifications.utils import trigger_welcome_notification
 
 router = APIRouter()
 
@@ -49,10 +50,16 @@ async def register_user(user_data: UserCreate, db: Session = Depends(get_db)):
         location=user_data.location,
         region=user_data.region
     )
-    
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
+    
+    # Trigger welcome notification
+    try:
+        trigger_welcome_notification(db, db_user.id, db_user.name)
+    except Exception as e:
+        # Don't fail registration if notification fails
+        print(f"Failed to create welcome notification: {e}")
     
     return UserResponse(
         id=db_user.id,
@@ -60,6 +67,9 @@ async def register_user(user_data: UserCreate, db: Session = Depends(get_db)):
         name=db_user.name,
         location=db_user.location,
         region=db_user.region,
+        role=db_user.role,
+        permissions=db_user.permissions,
+        is_active=db_user.is_active,
         total_points=db_user.total_points,
         weekly_points=db_user.weekly_points,
         rank=db_user.rank,
@@ -96,12 +106,10 @@ async def login_user(form_data: OAuth2PasswordRequestForm = Depends(), db: Sessi
     access_token = create_access_token(
         data={"sub": user.email}, expires_delta=access_token_expires
     )
-    
-    # Create refresh token
+      # Create refresh token
     refresh_token_expires = timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
     refresh_token = create_refresh_token(
-        data={"sub": user.email}, expires_delta=refresh_token_expires
-    )
+        data={"sub": user.email}, expires_delta=refresh_token_expires    )
     
     return {
         "access_token": access_token,
@@ -113,15 +121,18 @@ async def login_user(form_data: OAuth2PasswordRequestForm = Depends(), db: Sessi
             name=user.name,
             location=user.location,
             region=user.region,
-            total_points=user.total_points,
-            weekly_points=user.weekly_points,
-            rank=user.rank,
-            is_verified=user.is_verified,
-            created_at=user.created_at,
+            role=user.role or "user",
+            permissions=user.permissions or "basic",
+            is_active=user.is_active if user.is_active is not None else True,
+            total_points=user.total_points or 0,
+            weekly_points=user.weekly_points or 0,
+            rank=user.rank or 0,
+            is_verified=user.is_verified if user.is_verified is not None else False,
+            created_at=user.created_at or datetime.utcnow(),
             impact_stats={
-                "trash_collected": user.trash_collected,
-                "trees_planted": user.trees_planted,
-                "co2_saved": user.co2_saved
+                "trash_collected": user.trash_collected or 0.0,
+                "trees_planted": user.trees_planted or 0,
+                "co2_saved": user.co2_saved or 0.0
             }
         )
     }
@@ -156,7 +167,6 @@ async def refresh_token(refresh_token: str, db: Session = Depends(get_db)):
     access_token = create_access_token(
         data={"sub": user.email}, expires_delta=access_token_expires
     )
-    
     return {
         "access_token": access_token,
         "refresh_token": refresh_token,
@@ -167,15 +177,18 @@ async def refresh_token(refresh_token: str, db: Session = Depends(get_db)):
             name=user.name,
             location=user.location,
             region=user.region,
-            total_points=user.total_points,
-            weekly_points=user.weekly_points,
-            rank=user.rank,
-            is_verified=user.is_verified,
-            created_at=user.created_at,
+            role=user.role or "user",
+            permissions=user.permissions or "basic",
+            is_active=user.is_active if user.is_active is not None else True,
+            total_points=user.total_points or 0,
+            weekly_points=user.weekly_points or 0,
+            rank=user.rank or 0,
+            is_verified=user.is_verified if user.is_verified is not None else False,
+            created_at=user.created_at or datetime.utcnow(),
             impact_stats={
-                "trash_collected": user.trash_collected,
-                "trees_planted": user.trees_planted,
-                "co2_saved": user.co2_saved
+                "trash_collected": user.trash_collected or 0.0,
+                "trees_planted": user.trees_planted or 0,
+                "co2_saved": user.co2_saved or 0.0
             }
         )
     }
@@ -189,15 +202,18 @@ async def get_current_user_info(current_user: User = Depends(get_current_user)):
         name=current_user.name,
         location=current_user.location,
         region=current_user.region,
-        total_points=current_user.total_points,
-        weekly_points=current_user.weekly_points,
-        rank=current_user.rank,
-        is_verified=current_user.is_verified,
-        created_at=current_user.created_at,
+        role=current_user.role or "user",
+        permissions=current_user.permissions or "basic",
+        is_active=current_user.is_active if current_user.is_active is not None else True,
+        total_points=current_user.total_points or 0,
+        weekly_points=current_user.weekly_points or 0,
+        rank=current_user.rank or 0,
+        is_verified=current_user.is_verified if current_user.is_verified is not None else False,
+        created_at=current_user.created_at or datetime.utcnow(),
         impact_stats={
-            "trash_collected": current_user.trash_collected,
-            "trees_planted": current_user.trees_planted,
-            "co2_saved": current_user.co2_saved
+            "trash_collected": current_user.trash_collected or 0.0,
+            "trees_planted": current_user.trees_planted or 0,
+            "co2_saved": current_user.co2_saved or 0.0
         }
     )
 

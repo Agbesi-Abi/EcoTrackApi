@@ -121,6 +121,23 @@ GET    /api/v1/users/{id}/activities - Get user's activities
 DELETE /api/v1/users/{id}            - Delete user account
 ```
 
+### Notifications
+```
+GET    /api/v1/notifications                 - Get user notifications
+GET    /api/v1/notifications/stats           - Get notification statistics
+GET    /api/v1/notifications/unread-count    - Get unread notification count
+PUT    /api/v1/notifications/{id}            - Mark notification as read/unread
+DELETE /api/v1/notifications/{id}            - Delete notification
+PUT    /api/v1/notifications/mark-all-read   - Mark all as read
+GET    /api/v1/notifications/types           - Get notification types
+
+# Admin Notification Endpoints
+POST   /api/v1/notifications/admin/create            - Create notification
+POST   /api/v1/notifications/admin/bulk-create       - Create bulk notifications
+POST   /api/v1/notifications/admin/broadcast         - Broadcast to all users
+DELETE /api/v1/notifications/admin/cleanup           - Cleanup expired notifications
+```
+
 ### Ghana Data
 ```
 GET /api/v1/ghana/regions - Get all Ghana regions with capitals
@@ -175,6 +192,18 @@ GET /api/v1/ghana/regions - Get all Ghana regions with capitals
 - name, capital, code
 - population, area_km2
 - Environmental stats (users, activities, points, impact)
+```
+
+### Notifications Table
+```sql
+- id (Primary Key)
+- user_id (Foreign Key)
+- type (achievement, challenge, activity, verification, leaderboard, system)
+- title, message
+- data (JSON) - Additional notification data
+- is_read, priority (low, normal, high, urgent)
+- action_url - Deep link for action
+- expires_at, created_at, read_at
 ```
 
 ## 🇬🇭 Ghana-Focused Features
@@ -405,5 +434,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 **Yɛ bɛyɛ yiye** - We will make it better 🇬🇭
 
 Built with ❤️ for Ghana's sustainable future
-#   E c o T r a c k A p i  
+#   E c o T r a c k A p i 
+ 
  

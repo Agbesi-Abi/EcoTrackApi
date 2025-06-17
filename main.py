@@ -3,26 +3,40 @@ EcoTrack Ghana - FastAPI Backend
 A sustainable environmental tracking application for Ghana
 """
 
+import sys
+import os
+
+# Windows compatibility fixes
+if sys.platform == "win32":
+    # Fix Windows handle issues
+    import multiprocessing
+    multiprocessing.set_start_method('spawn', force=True)
+    
+    # Disable output buffering on Windows
+    sys.stdout.reconfigure(line_buffering=True)
+    sys.stderr.reconfigure(line_buffering=True)
+
 import uvicorn
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse
 from contextlib import asynccontextmanager
-import os
 from pathlib import Path
 from dotenv import load_dotenv
 
 # Load environment variables
 load_dotenv()
 
-from database import init_db
+from database import init_db, engine
+from sqlalchemy import text
 from auth.routes import router as auth_router
 from activities.routes import router as activities_router
 from challenges.routes import router as challenges_router
 from community.routes import router as community_router
 from users.routes import router as users_router
 from admin.routes import router as admin_router
+from notifications.routes import router as notifications_router
 
 # Environment configuration
 ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
@@ -56,16 +70,39 @@ app = FastAPI(
 )
 
 # CORS configuration
-allowed_origins = os.getenv("ALLOWED_ORIGINS", "").split(",") if os.getenv("ALLOWED_ORIGINS") else ["*"]
+if ENVIRONMENT == "development":
+    allowed_origins = [
+        "http://localhost:3000",  # React admin dashboard
+        "http://127.0.0.1:3000",
+        "http://localhost:8081",  # Expo dev server
+        "http://127.0.0.1:8081",
+        "*"  # Allow all for development
+    ]
+else:
+    allowed_origins = os.getenv("ALLOWED_ORIGINS", "").split(",") if os.getenv("ALLOWED_ORIGINS") else [
+        "https://ecotrack-admin.vercel.app",
+        "https://ecotrack-ghana.vercel.app"
+    ]
 
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
     allow_headers=["*"],
+    expose_headers=["*"]
 )
+
+# Only print debug info in development
+if DEBUG and ENVIRONMENT != "production":
+    try:
+        print(f"🔧 CORS allowed origins: {allowed_origins}")
+        print(f"🔧 Admin enabled: {ENABLE_ADMIN}")
+        print(f"🔧 Environment: {ENVIRONMENT}")
+    except OSError:
+        # Handle Windows output issues
+        pass
 
 # Create uploads directory if it doesn't exist
 uploads_dir = Path("uploads")
@@ -83,6 +120,7 @@ app.include_router(activities_router, prefix=f"{api_v1_prefix}/activities", tags
 app.include_router(challenges_router, prefix=f"{api_v1_prefix}/challenges", tags=["Challenges"])
 app.include_router(community_router, prefix=f"{api_v1_prefix}/community", tags=["Community"])
 app.include_router(users_router, prefix=f"{api_v1_prefix}/users", tags=["Users"])
+app.include_router(notifications_router, prefix=f"{api_v1_prefix}/notifications", tags=["Notifications"])
 
 # Admin routes (only in development or when explicitly enabled)
 if DEBUG or ENABLE_ADMIN:
@@ -101,11 +139,13 @@ async def root():
 
 @app.get("/health")
 async def health_check():
+    """API health check endpoint"""
     return {
         "status": "healthy",
         "service": "EcoTrack Ghana API",
         "environment": ENVIRONMENT,
-        "version": os.getenv("PROJECT_VERSION", "1.0.0")
+        "version": os.getenv("PROJECT_VERSION", "1.0.0"),
+        "database_type": "postgresql" if os.getenv("DATABASE_URL", "").startswith("postgresql") else "sqlite"
     }
 
 # Ghana-specific data endpoint
@@ -136,10 +176,26 @@ if __name__ == "__main__":
     port = int(os.getenv("PORT", 8000))
     host = os.getenv("HOST", "0.0.0.0")
     
-    uvicorn.run(
-        "main:app",
-        host=host,
-        port=port,
-        reload=DEBUG,
-        log_level="info" if DEBUG else "warning"
-    )
+    # Windows-compatible uvicorn configuration
+    config = {
+        "app": "main:app",
+        "host": host,
+        "port": port,
+        "reload": DEBUG,
+        "log_level": "info" if DEBUG else "warning",
+        "access_log": DEBUG,
+        "workers": 1,  # Single worker to avoid Windows multiprocessing issues
+    }
+    
+    # Additional Windows-specific settings
+    if sys.platform == "win32":
+        config["loop"] = "asyncio"
+        config["lifespan"] = "on"
+    
+    try:
+        uvicorn.run(**config)
+    except OSError as e:
+        if "handle is invalid" in str(e):
+            print("Windows handle error detected. Try running with: python -m uvicorn main:app --reload --port 8000 --workers 1")
+        else:
+            raise

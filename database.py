@@ -12,11 +12,30 @@ from typing import Optional
 # Database URL
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./ecotrack_ghana.db")
 
-# Create engine
-engine = create_engine(
-    DATABASE_URL,
-    connect_args={"check_same_thread": False} if "sqlite" in DATABASE_URL else {}
-)
+# Database connection parameters
+db_pool_size = int(os.getenv("DB_POOL_SIZE", "10"))
+db_max_overflow = int(os.getenv("DB_MAX_OVERFLOW", "20"))
+db_pool_timeout = int(os.getenv("DB_POOL_TIMEOUT", "30"))
+db_pool_recycle = int(os.getenv("DB_POOL_RECYCLE", "3600"))
+
+# Create engine with appropriate parameters
+if DATABASE_URL.startswith("postgresql"):
+    # PostgreSQL configuration
+    engine = create_engine(
+        DATABASE_URL,
+        pool_size=db_pool_size,
+        max_overflow=db_max_overflow,
+        pool_timeout=db_pool_timeout,
+        pool_recycle=db_pool_recycle,
+        pool_pre_ping=True,  # Verify connections before use
+        echo=False  # Set to True for SQL debugging
+    )
+else:
+    # SQLite configuration (fallback)
+    engine = create_engine(
+        DATABASE_URL,
+        connect_args={"check_same_thread": False}
+    )
 
 # Session factory
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -50,6 +69,9 @@ class User(Base):
     avatar_url = Column(String, nullable=True)
     is_active = Column(Boolean, default=True)
     is_verified = Column(Boolean, default=False)
+    role = Column(String, default="user")  # 'user', 'admin', 'super_admin'
+    permissions = Column(String, default="basic")  # 'basic', 'full'
+    last_login = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=func.now())
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
     
@@ -116,6 +138,25 @@ class Region(Base):
     trash_collected = Column(Float, default=0.0)
     trees_planted = Column(Integer, default=0)
     co2_saved = Column(Float, default=0.0)
+
+class Notification(Base):
+    __tablename__ = "notifications"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    type = Column(String, nullable=False)  # 'achievement', 'challenge', 'activity', 'verification', 'leaderboard', 'system'
+    title = Column(String, nullable=False)
+    message = Column(Text, nullable=False)
+    data = Column(Text, nullable=True)  # JSON string for additional data
+    is_read = Column(Boolean, default=False)
+    priority = Column(String, default="normal")  # 'low', 'normal', 'high', 'urgent'
+    action_url = Column(String, nullable=True)  # Deep link or URL for action
+    expires_at = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=func.now())
+    read_at = Column(DateTime, nullable=True)
+    
+    # Relationships
+    user = relationship("User", backref="notifications")
 
 # Database utility functions
 def get_db():

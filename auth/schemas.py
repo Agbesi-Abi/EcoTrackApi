@@ -35,6 +35,9 @@ class UserResponse(BaseModel):
     name: str
     location: Optional[str] = None
     region: Optional[str] = None
+    role: Optional[str] = "user"
+    permissions: Optional[str] = "basic"
+    is_active: bool = True
     total_points: int = 0
     weekly_points: int = 0
     rank: int = 0
