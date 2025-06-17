@@ -1,4 +1,4 @@
-# EcoTrack Ghana API - Ignore files
+# EcoTrack Ghana API - Comprehensive .gitignore
 
 # Python
 __pycache__/
@@ -18,48 +18,346 @@ parts/
 sdist/
 var/
 wheels/
+pip-wheel-metadata/
+share/python-wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+
+# Translations
+*.mo
+*.pot
+
+# Django stuff (if applicable):
+*.log
+local_settings.py
+
+# Flask stuff:
+instance/
+.webassets-cache
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IPython
+profile_default/
+ipython_config.py
+
+# pyenv
+.python-version
+
+# pipenv
+Pipfile.lock
+
+# PEP 582
+__pypackages__/
 
 # Virtual Environment
 venv/
 env/
 ENV/
+.venv/
+env.bak/
+venv.bak/
 
-# Environment Variables
+# Environment Variables (CRITICAL - Never commit these!)
 .env
 .env.local
 .env.production
+.env.staging
+.env.development
+.env.override
+.env.secret
 
-# Database
+# Database files
 *.db
 *.sqlite
 *.sqlite3
+ecotrack_ghana.db
+ecotrack_*.db
+*.db-journal
+*.db-wal
+*.db-shm
 
-# Uploads
+# PostgreSQL dumps
+*.sql
+*.dump
+*.backup
+
+# Upload directories
 uploads/
+temp_uploads/
 static/uploads/
+media/
 
-# IDE
+# Log files
+logs/
+*.log
+log.txt
+debug.log
+error.log
+access.log
+
+# FastAPI specific
+.pytest_cache/
+.coverage
+htmlcov/
+
+# IDE and Editor files
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
+.spyderproject
+.spyproject
+.ropeproject
 
-# OS
+# OS generated files
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
 
-# Logs
-logs/
-*.log
+# Temporary files
+*.tmp
+*.temp
+temp/
+tmp/
 
-# Testing
-.pytest_cache/
-.coverage
-htmlcov/
+# Docker
+.dockerignore
+docker-compose.override.yml
+.docker/
 
-# Alembic
-alembic/versions/
+# Backup files
+*.bak
+*.backup
+backup/
+backups/
+
+# Redis dump files
+dump.rdb
+
+# Celery beat schedule file
+celerybeat-schedule
+
+# Local development files
+local/
+dev/
+development/
+
+# Certificate files (SECURITY CRITICAL)
+*.pem
+*.key
+*.crt
+*.cert
+certificates/
+ssl/
+
+# Configuration files with sensitive data
+config.py
+local_config.py
+production_config.py
+secrets.json
+credentials.json
+
+# Monitoring and profiling
+.prof
+*.prof
+
+# Cache directories
+.cache/
+cache/
+
+# Node modules (if any JS tools are used)
+node_modules/
+
+# Package files
+*.tar.gz
+*.zip
+*.rar
+*.7z
+
+# Test files that might contain sensitive data
+test_data/
+sample_data/
+fixtures/
+
+# Alembic (database migration tool)
+alembic/versions/*.py
+!alembic/versions/__init__.py
+
+# Local scripts with potential credentials
+local_*.py
+test_local_*.py
+debug_local_*.py
+scratch_*.py
+*_credentials.py
+*_secrets.py
+
+# API documentation build files
+docs/build/
+docs/_build/
+
+# Jupyter notebooks (often contain sensitive outputs)
+*.ipynb
+
+# Local environment overrides
+.env.override
+.env.secret
+
+# Performance monitoring files
+*.profile
+*.pstats
+
+# Memory dumps
+*.dump
+core.*
+
+# Local database access scripts (SECURITY CRITICAL)
+access_*.py
+connect_*.py
+local_db_*.py
+remote_db_*.py
+production_db_*.py
+
+# PowerShell scripts that might contain credentials
+*_credentials.ps1
+*_secrets.ps1
+access_*.ps1
+
+# Windows batch files with credentials
+*_creds.bat
+*_secrets.bat
+
+# Backup of original files
+*.orig
+
+# Lock files
+poetry.lock
+
+# MyPy cache
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker
+.pyre/
+
+# Local test outputs
+test_output/
+test_results/
+
+# Temporary upload files
+*.upload
+upload_temp/
+
+# Session files
+sessions/
+*.session
+
+# Local admin scripts
+admin_local_*.py
+setup_local_*.py
+
+# Render deployment files (may contain sensitive info)
+render_deploy.yaml
+
+# Git files
+.git/
+.gitattributes
+
+# macOS
+.AppleDouble
+.LSOverride
+
+# Windows
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+
+# JetBrains IDEs
+.idea/
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Atom
+.atom/
+
+# VS Code
+.vscode/settings.json
+.vscode/launch.json
+.vscode/extensions.json
+.vscode/tasks.json
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# Vim
+[._]*.s[a-v][a-z]
+[._]*.sw[a-p]
+[._]s[a-rt-v][a-z]
+[._]ss[a-gi-z]
+[._]sw[a-p]
+
+# LibreOffice locks
+.~lock.*#
+
+# Thumbnails
+._*
+Thumbs.db
+ehthumbs.db
+
+# Files that might appear in the root of a volume
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# Directories potentially created on remote AFP share
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
