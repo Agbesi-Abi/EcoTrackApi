@@ -10,8 +10,15 @@ import os
 from typing import Optional
 
 # Database URL
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://neondb_owner:npg_HTpxb2li9fnh@ep-polished-wildflower-a8ojt0hv-pooler.eastus2.azure.neon.tech/neondb?sslmode=require")
-print(DATABASE_URL)
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./ecotrack_ghana.db")
+
+# Only print database type, not the full URL (for security)
+if DATABASE_URL.startswith("postgresql"):
+    print("🗄️  Using PostgreSQL database")
+elif DATABASE_URL.startswith("sqlite"):
+    print("🗄️  Using SQLite database (fallback)")
+else:
+    print("🗄️  Using custom database")
 
 
 # Database connection parameters
