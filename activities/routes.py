@@ -91,7 +91,7 @@ async def get_my_activities(
     
     if activity_type:
         query = query.filter(Activity.type == activity_type)
-      activities = query.order_by(desc(Activity.created_at)).offset(skip).limit(limit).all()
+        activities = query.order_by(desc(Activity.created_at)).offset(skip).limit(limit).all()
     
     return [
         ActivityResponse(
