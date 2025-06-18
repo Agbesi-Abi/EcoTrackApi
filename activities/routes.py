@@ -84,18 +84,20 @@ async def get_my_activities(
 ):
     """Get current user's activities"""
     
-    query = db.query(Activity).filter(Activity.user_id == current_user.id)
+    # Use joinedload to eagerly load the user relationship
+    from sqlalchemy.orm import joinedload
+    
+    query = db.query(Activity).options(joinedload(Activity.user)).filter(Activity.user_id == current_user.id)
     
     if activity_type:
         query = query.filter(Activity.type == activity_type)
-    
-    activities = query.order_by(desc(Activity.created_at)).offset(skip).limit(limit).all()
+      activities = query.order_by(desc(Activity.created_at)).offset(skip).limit(limit).all()
     
     return [
         ActivityResponse(
             id=activity.id,
             user_id=activity.user_id,
-            user_name=activity.user.name,
+            user_name=activity.user.name if activity.user else current_user.name,
             type=activity.type,
             title=activity.title,
             description=activity.description,

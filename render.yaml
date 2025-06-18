@@ -7,8 +7,31 @@ services:
     buildCommand: pip install -r requirements.production.txt
     startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
     envVars:
+      # Core Environment
       - key: ENVIRONMENT
         value: production
+      - key: DEBUG
+        value: False
+      - key: ENABLE_DOCS
+        value: true
+      - key: ENABLE_ADMIN
+        value: true
+      
+      # Database Configuration (Your existing PostgreSQL)
+      - key: DATABASE_URL
+        value: postgresql://ecotrack_d3gm_user:Q6tG9Y5zLJ1h9aihzBomjnOPilYC7HH0@dpg-d18o2oggjchc739cotbg-a.oregon-postgres.render.com/ecotrack_d3gm
+      
+      # Database Pool Settings
+      - key: DB_POOL_SIZE
+        value: 10
+      - key: DB_MAX_OVERFLOW
+        value: 20
+      - key: DB_POOL_TIMEOUT
+        value: 30
+      - key: DB_POOL_RECYCLE
+        value: 3600
+      
+      # JWT Configuration
       - key: JWT_SECRET_KEY
         generateValue: true
       - key: JWT_ALGORITHM
@@ -17,19 +40,43 @@ services:
         value: 30
       - key: JWT_REFRESH_TOKEN_EXPIRE_DAYS
         value: 7
+        
+      # File Upload Configuration
       - key: MAX_FILE_SIZE
         value: 5242880
       - key: ALLOWED_IMAGE_TYPES
         value: image/jpeg,image/png,image/webp
-      - key: DATABASE_URL
-        fromDatabase:
-          name: ecotrack-db
-          property: connectionString
+      - key: UPLOAD_DIR
+        value: uploads
+        
+      # CORS Configuration
       - key: ALLOWED_ORIGINS
-        value: https://your-frontend-domain.com,https://www.your-frontend-domain.com
+        value: https://ecotrack-online.onrender.com/api/v1,https://ecotrack-ghana.com/api/v1,http://localhost:3000,http://localhost:8081
+        
+      # Security Headers
+      - key: SECURE_COOKIES
+        value: True
+      - key: HTTPS_ONLY
+        value: True
+        
+      # Rate Limiting
+      - key: RATE_LIMIT_PER_MINUTE
+        value: 100
+        
+      # Logging
+      - key: LOG_LEVEL
+        value: WARNING
+      - key: LOG_FILE
+        value: logs/ecotrack_api.log
+        
+      # Ghana Regions Configuration
+      - key: DEFAULT_REGION
+        value: Greater Accra
+        
+      # Monitoring
+      - key: ENABLE_METRICS
+        value: True
+      - key: HEALTH_CHECK_INTERVAL
+        value: 60
 
-databases:
-  - name: ecotrack-db
-    plan: starter
-    databaseName: ecotrack_ghana
-    user: ecotrack_user
+# Note: We're using an external PostgreSQL database, so no databases section needed
