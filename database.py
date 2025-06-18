@@ -25,7 +25,7 @@ if not DATABASE_URL:
     DATABASE_URL = "sqlite:///./ecotrack_ghana.db"
     print("⚠️  No DATABASE_URL found, using SQLite fallback")
 else:
-    print(f"🔗 Database URL found: {DATABASE_URL.split('@')[0] if '@' in DATABASE_URL else 'Local'}...")
+    print(f"🔗 Database URL found")
 
 # Only print database type, not the full URL (for security)
 if DATABASE_URL.startswith("postgresql"):
