@@ -81,6 +81,7 @@ if ENVIRONMENT == "development":
     ]
 else:
     allowed_origins = os.getenv("ALLOWED_ORIGINS", "").split(",") if os.getenv("ALLOWED_ORIGINS") else [
+        "https://eco-track-admin.vercel.app",  
         "https://ecotrack-admin.vercel.app",
         "https://ecotrack-ghana.vercel.app"
     ]
