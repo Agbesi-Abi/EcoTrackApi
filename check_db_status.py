@@ -7,7 +7,7 @@ import requests
 import json
 
 def check_database_status():
-    base_url = "https://ecotrack-online.onrender.com/api/v1"
+    base_url = "https://ecotrack-ghana-57b7a53a4c97.herokuapp.com/api/v1"
     
     print("📊 EcoTrack Production Database Status")
     print("=" * 50)

@@ -5,7 +5,7 @@ import requests
 import json
 import time
 
-API_BASE_URL = "https://ecotrack-online.onrender.com/api/v1"
+API_BASE_URL = "https://ecotrack-ghana-57b7a53a4c97.herokuapp.com/api/v1"
 
 def test_health():
     """Test health endpoint"""
