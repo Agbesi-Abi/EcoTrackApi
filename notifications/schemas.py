@@ -92,8 +92,8 @@ class NotificationPreferences(BaseModel):
     leaderboard_notifications: bool = True
     system_notifications: bool = True
     notification_frequency: str = "immediate"  # 'immediate', 'daily', 'weekly'
-    quiet_hours_start: Optional[str] = None  # HH:MM format
-    quiet_hours_end: Optional[str] = None    # HH:MM format
+    quiet_hours_start: Optional[str] = None  # HH:MM formt
+    quiet_hours_end: Optional[str] = None    # HH:MM formt
     
     @validator('notification_frequency')
     def validate_frequency(cls, v):
