@@ -10,24 +10,19 @@ import os
 from typing import Optional
 from dotenv import load_dotenv
 
-# Load environment variables from .env.production (for local development)
-# In production (Render), environment variables are set directly in the platform
 try:
     load_dotenv('.env.production')
 except:
-    pass  # Ignore if .env.production doesn't exist (production environment)
+    pass  
 
-# Database URL - prioritize environment variable, fallback to SQLite
 DATABASE_URL = os.getenv("DATABASE_URL")
 
-# If no DATABASE_URL is set, use SQLite as fallback
 if not DATABASE_URL:
     DATABASE_URL = "sqlite:///./ecotrack_ghana.db"
     print("⚠️  No DATABASE_URL found, using SQLite fallback")
 else:
     print(f"🔗 Database URL found")
 
-# Only print database type, not the full URL (for security)
 if DATABASE_URL.startswith("postgresql"):
     print("🗄️  Using PostgreSQL database")
 elif DATABASE_URL.startswith("sqlite"):
